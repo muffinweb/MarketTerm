@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+
+  marketterm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+    stdin_open: true
+    tty: true
+
+  # db:
+  #   image: mysql
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: 123456
+  #     MYSQL_DATABASE: markettermdb
+  #     MYSQL_USER: user
+  #     MYSQL_PASSWORD: password123
+  #   ports:
+  #     - 3306:3306
+  #   volumes:
+  #     - volumes/mysql:/var/lib/mysql:rw
