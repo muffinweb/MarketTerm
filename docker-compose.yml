@@ -1,16 +1,6 @@
 version: '3'
 
 services:
-
-  marketterm:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: development
-    stdin_open: true
-    tty: true
-
   # db:
   #   image: mysql
   #   environment:
@@ -19,6 +9,16 @@ services:
   #     MYSQL_USER: user
   #     MYSQL_PASSWORD: password123
   #   ports:
-  #     - 3306:3306
+  #     - "3306:3306"
   #   volumes:
-  #     - volumes/mysql:/var/lib/mysql:rw
+  #     - ./volumes/mysql:/var/lib/mysql
+  marketterm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+    stdin_open: true
+    tty: true
+    # depends_on:
+    #   - db

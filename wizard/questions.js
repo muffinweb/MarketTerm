@@ -11,7 +11,7 @@ const questions = [
     name: "whichAsset",
     message: "Which asset do want to compare?",
     default: 'USD',
-    choices: ["USD", "EUR", "Gold"]
+    choices: ["USD", "EUR", "Gold", "Silver"]
   },
   {
     type: 'list',

@@ -6,6 +6,10 @@
  * @linkedin https://linkedin.com/in/ugurcengiz
  */
 
+/** ENV Configuration Reads */
+import * as dotenv from 'dotenv'
+dotenv.config();
+
 import inquirer from 'inquirer';
 import questions from './wizard/questions.js';
 import MarketTerm from './core/MarketTerm.js';

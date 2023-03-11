@@ -2,6 +2,7 @@ import axios from "axios"
 import loading from "loading-cli"
 import cheerio  from "cheerio"
 import { table } from 'table';
+import consoleTableConfig from '../config/consoleTableConfig.js'
 import MarketTermUris from "./MarketTermUris.js";
 
 
@@ -23,11 +24,6 @@ const MarketTerm = async (answers) => {
                 let dovizDocument = response.data;
                 
                 load.stop();
-                // const data = [
-                //     ['0A', '0B', '0C'],
-                //     ['1A', '1B', '1C'],
-                //     ['2A', '2B', '2C']
-                // ];
 
                 //Initialize Cheerio
                 const $ = cheerio.load(dovizDocument);
@@ -36,13 +32,89 @@ const MarketTerm = async (answers) => {
                 const dataSection_1 = $('body > div.wrapper > div.kur-page > div.article-content > div:nth-child(7) > div:nth-child(1) > div > div > table > tbody');
                 const dataSection_2 = $('body > div.wrapper > div.kur-page > div.article-content > div:nth-child(7) > div:nth-child(2) > div > div > table > tbody');
 
+                const generalResults = [];
+
                 let section1Result = await new Promise((resolve,reject) => {
+                    let dataSection_1FindLength = dataSection_1.find('tr').length;
+
+                    let loopInResult = [];
+
                     dataSection_1.find('tr').each((index, dataSection1ElemItem) => {
                         let itemResult = {};
                         itemResult.bank = $(dataSection1ElemItem).find('td:nth-child(1) > a').text();
-                        console.log(itemResult);
+                        
+                        itemResult.buyRate = parseFloat($(dataSection1ElemItem).find('td:nth-child(2)').text().replace(',','.'));
+                        itemResult.sellRate = parseFloat($(dataSection1ElemItem).find('td:nth-child(3)').text().replace(',', '.'));
+
+                        //Calculate buy/sell diff rate
+                        let buySellDiffRate = ((itemResult.sellRate-itemResult.buyRate)/itemResult.buyRate)*100;
+                        itemResult.buySellDiffRate = buySellDiffRate;
+
+                        //Add related result item to final result
+                        loopInResult.push(itemResult);
+
+                        if(index+1 == dataSection_1FindLength){
+                            resolve(loopInResult);
+                            generalResults.push(loopInResult);
+                        }
+
                     })
-                })
+                });
+
+                let section2Result = await new Promise((resolve,reject) => {
+                    let dataSection_2FindLength = dataSection_2.find('tr').length;
+
+                    let loopInResult = [];
+
+                    dataSection_2.find('tr').each((index, dataSection2ElemItem) => {
+                        let itemResult = {};
+                        itemResult.bank = $(dataSection2ElemItem).find('td:nth-child(1) > a').text();
+                        
+                        itemResult.buyRate = parseFloat($(dataSection2ElemItem).find('td:nth-child(2)').text().replace(',','.'));
+                        itemResult.sellRate = parseFloat($(dataSection2ElemItem).find('td:nth-child(3)').text().replace(',', '.'));
+
+                        //Calculate buy/sell diff rate
+                        let buySellDiffRate = ((itemResult.sellRate-itemResult.buyRate)/itemResult.buyRate)*100;
+                        itemResult.buySellDiffRate = buySellDiffRate;
+
+                        //Add related result item to final result
+                        loopInResult.push(itemResult);
+
+                        if(index+1 == dataSection_2FindLength){
+                            resolve(loopInResult);
+                            generalResults.push(loopInResult);
+                        }
+
+                    })
+                });
+
+                let finalResults = [].concat(generalResults[0], generalResults[1]);
+
+                if(answers.sortingOption == 'Yes'){
+                    finalResults.sort(function(a,b){
+                        return (a.buySellDiffRate - b.buySellDiffRate) && !(a.sellRate - b.sellRate) && (a.buyRate - b.buyRate)
+                    });
+                }else{
+                    finalResults.sort(function(a,b){
+                        return (a.sellRate - b.sellRate)
+                    });
+                }
+
+                
+
+                let dataConsoleTable = [[answers.whichAsset + " Market Report", "", "", ""], ['Bank', 'Buy', 'Sell', 'Diff Rate']];
+
+                for(const[key,value] of Object.entries(finalResults)){
+                    let currentRow = [];
+                    currentRow.push(value.bank);
+                    currentRow.push(value.buyRate);
+                    currentRow.push(value.sellRate);
+                    currentRow.push(value.buySellDiffRate);
+                    
+                    dataConsoleTable.push(currentRow);
+                }
+
+                console.log(table(dataConsoleTable, consoleTableConfig))
 
             })        
     }else{
