@@ -6,7 +6,6 @@ import consoleTableConfig from '../config/consoleTableConfig.js'
 import MarketTermUris from "./MarketTermUris.js";
 
 
-
 const MarketTerm = async (answers) => {
     if(answers.permissionToAction == 'Yes'){
 

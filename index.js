@@ -10,6 +10,10 @@
 import * as dotenv from 'dotenv'
 dotenv.config();
 
+// Connect MongoDBClient Initialize
+import MongoDBInit from './core/MongoDBInit.js';
+MongoDBInit();
+
 import inquirer from 'inquirer';
 import questions from './wizard/questions.js';
 import MarketTerm from './core/MarketTerm.js';
