@@ -6,11 +6,6 @@
  * @linkedin https://linkedin.com/in/ugurcengiz
  */
 
-/** ENV Configuration Reads */
-import * as dotenv from 'dotenv'
-dotenv.config();
-
-// Connect MongoDBClient Initialize
 import MongoDBInit from './core/MongoDBInit.js';
 MongoDBInit();
 

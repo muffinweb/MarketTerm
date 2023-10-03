@@ -17,6 +17,7 @@
     "inquirer": "^9.1.4",
     "loading-cli": "^1.1.0",
     "mongodb": "^5.1.0",
+    "mongoose": "^7.0.3",
     "mysql": "^2.18.1",
     "table": "^6.8.1"
   }

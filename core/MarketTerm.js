@@ -4,6 +4,8 @@ import cheerio  from "cheerio"
 import { table } from 'table';
 import consoleTableConfig from '../config/consoleTableConfig.js'
 import MarketTermUris from "./MarketTermUris.js";
+import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
 
 const MarketTerm = async (answers) => {
@@ -88,16 +90,26 @@ const MarketTerm = async (answers) => {
                 });
 
                 let finalResults = [].concat(generalResults[0], generalResults[1]);
+                
+                //Now Let's connect mongoDB and insert values
+                mongoose.connect('mongodb://admin:password@mongo:27017/admin');
 
-                if(answers.sortingOption == 'Yes'){
-                    finalResults.sort(function(a,b){
-                        return (a.buySellDiffRate - b.buySellDiffRate) && !(a.sellRate - b.sellRate) && (a.buyRate - b.buyRate)
-                    });
-                }else{
-                    finalResults.sort(function(a,b){
-                        return (a.sellRate - b.sellRate)
-                    });
-                }
+                const MarketTermLog = mongoose.model('MarketTermLog', {
+                    bank: String,
+                    buyRate: Number,
+                    sellRate: Number,
+                    buySellDiffRate: Number
+                });
+
+                let sampleLog = new MarketTermLog({
+                    bank: 'Halkbank',
+                    buyRate: 123.22,
+                    sellRate: 22.3324,
+                    buySellDiffRate: 1.2244
+                });
+
+                sampleLog.save().then(() => console.log('DID IT'));
+
 
                 
 
