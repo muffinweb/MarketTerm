@@ -4,6 +4,7 @@ import cheerio  from "cheerio"
 import { table } from 'table';
 import consoleTableConfig from '../config/consoleTableConfig.js'
 import MarketTermUris from "./MarketTermUris.js";
+import chalk from "chalk";
 import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 
@@ -19,6 +20,8 @@ const MarketTerm = async (answers) => {
         // [1] Process Infobar
         const load = loading('Connecting Doviz.com...').start();
 
+        console.log(answers.whichAsset);
+
         axios.get(MarketTermUris[answers.whichAsset])
             .then(async response =>  {
                 console.log("\n\n");
@@ -30,8 +33,8 @@ const MarketTerm = async (answers) => {
                 const $ = cheerio.load(dovizDocument);
 
                 // Section1 and Section 2
-                const dataSection_1 = $('body > div.wrapper > div.kur-page > div.article-content > div:nth-child(7) > div:nth-child(1) > div > div > table > tbody');
-                const dataSection_2 = $('body > div.wrapper > div.kur-page > div.article-content > div:nth-child(7) > div:nth-child(2) > div > div > table > tbody');
+                const dataSection_1 = $('body > div.wrapper > div.kur-page > div.article-content > div.value-table > div > table > tbody');
+                //const dataSection_2 = $('body[aria-live="polite"]');
 
                 const generalResults = [];
 
@@ -46,10 +49,7 @@ const MarketTerm = async (answers) => {
                         
                         itemResult.buyRate = parseFloat($(dataSection1ElemItem).find('td:nth-child(2)').text().replace(',','.'));
                         itemResult.sellRate = parseFloat($(dataSection1ElemItem).find('td:nth-child(3)').text().replace(',', '.'));
-
-                        //Calculate buy/sell diff rate
-                        let buySellDiffRate = ((itemResult.sellRate-itemResult.buyRate)/itemResult.buyRate)*100;
-                        itemResult.buySellDiffRate = buySellDiffRate;
+                        itemResult.buySellDiffRate = $(dataSection1ElemItem).find('td:nth-child(5)').text();
 
                         //Add related result item to final result
                         loopInResult.push(itemResult);
@@ -62,53 +62,53 @@ const MarketTerm = async (answers) => {
                     })
                 });
 
-                let section2Result = await new Promise((resolve,reject) => {
-                    let dataSection_2FindLength = dataSection_2.find('tr').length;
+                // let section2Result = await new Promise((resolve,reject) => {
+                //     let dataSection_2FindLength = dataSection_2.find('tr').length;
 
-                    let loopInResult = [];
+                //     let loopInResult = [];
 
-                    dataSection_2.find('tr').each((index, dataSection2ElemItem) => {
-                        let itemResult = {};
-                        itemResult.bank = $(dataSection2ElemItem).find('td:nth-child(1) > a').text();
+                //     dataSection_2.find('tr').each((index, dataSection2ElemItem) => {
+                //         let itemResult = {};
+                //         itemResult.bank = $(dataSection2ElemItem).find('td:nth-child(1) > a').text();
                         
-                        itemResult.buyRate = parseFloat($(dataSection2ElemItem).find('td:nth-child(2)').text().replace(',','.'));
-                        itemResult.sellRate = parseFloat($(dataSection2ElemItem).find('td:nth-child(3)').text().replace(',', '.'));
+                //         itemResult.buyRate = parseFloat($(dataSection2ElemItem).find('td:nth-child(2)').text().replace(',','.'));
+                //         itemResult.sellRate = parseFloat($(dataSection2ElemItem).find('td:nth-child(3)').text().replace(',', '.'));
 
-                        //Calculate buy/sell diff rate
-                        let buySellDiffRate = ((itemResult.sellRate-itemResult.buyRate)/itemResult.buyRate)*100;
-                        itemResult.buySellDiffRate = buySellDiffRate;
+                //         //Calculate buy/sell diff rate
+                //         let buySellDiffRate = ((itemResult.sellRate-itemResult.buyRate)/itemResult.buyRate)*100;
+                //         itemResult.buySellDiffRate = buySellDiffRate;
 
-                        //Add related result item to final result
-                        loopInResult.push(itemResult);
+                //         //Add related result item to final result
+                //         loopInResult.push(itemResult);
 
-                        if(index+1 == dataSection_2FindLength){
-                            resolve(loopInResult);
-                            generalResults.push(loopInResult);
-                        }
+                //         if(index+1 == dataSection_2FindLength){
+                //             resolve(loopInResult);
+                //             generalResults.push(loopInResult);
+                //         }
 
-                    })
-                });
+                //     })
+                // });
 
-                let finalResults = [].concat(generalResults[0], generalResults[1]);
+                let finalResults = [].concat(generalResults[0]);
                 
                 //Now Let's connect mongoDB and insert values
-                mongoose.connect('mongodb://admin:password@mongo:27017/admin');
+                // mongoose.connect('mongodb://admin:password@mongo:27017/admin');
 
-                const MarketTermLog = mongoose.model('MarketTermLog', {
-                    bank: String,
-                    buyRate: Number,
-                    sellRate: Number,
-                    buySellDiffRate: Number
-                });
+                // const MarketTermLog = mongoose.model('MarketTermLog', {
+                //     bank: String,
+                //     buyRate: Number,
+                //     sellRate: Number,
+                //     buySellDiffRate: Number
+                // });
 
-                let sampleLog = new MarketTermLog({
-                    bank: 'Halkbank',
-                    buyRate: 123.22,
-                    sellRate: 22.3324,
-                    buySellDiffRate: 1.2244
-                });
+                // let sampleLog = new MarketTermLog({
+                //     bank: 'Halkbank',
+                //     buyRate: 123.22,
+                //     sellRate: 22.3324,
+                //     buySellDiffRate: 1.2244
+                // });
 
-                sampleLog.save().then(() => console.log('DID IT'));
+                // sampleLog.save().then(() => console.log('DID IT'));
 
 
                 
@@ -129,7 +129,7 @@ const MarketTerm = async (answers) => {
 
             })        
     }else{
-        load.stop();
+        console.log(chalk.redBright('Permission Needed: Doviz.com is required source to run this console app. You need to allow Doviz.com Sources'));
     }
 }
 
